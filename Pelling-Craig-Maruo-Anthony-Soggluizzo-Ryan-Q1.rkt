@@ -55,8 +55,8 @@
   ;(sm-getfinals dfa) -> returns the list of final states
   )
 
-;reachablestate?: dfa -> boolean
-(define (reachablestate? dfa)
+;reachablerule?: dfa -> boolean
+(define (reachablerule? dfa)
   ;INVENTORY
   ;(sm-getstates dfa) -> returns the states of the machine
   ;(sm-getalphabet dfa) -> retruns the alphabet of the given state
@@ -64,6 +64,9 @@
   ;(sm-getstart dfa) -> retruns the starting state
   ;(sm-getfinals dfa) -> returns the list of final states
   )
+
+;enterstate-rule?: dfa -> boolean
+;Purpose: to determine if the state is entered by the rules
 
 
 
