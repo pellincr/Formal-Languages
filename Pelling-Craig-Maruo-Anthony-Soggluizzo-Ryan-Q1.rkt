@@ -41,7 +41,23 @@
    (sm-getalphabet dfa)
    (sm-getstart dfa)
    (sm-getfinals dfa)
-   (sm-getrules dfa)))
+   (update-rules (sm-getrules dfa) (filter
+                                    (lambda (x) (member x (remove-nonreachable-states (sm-getrules dfa) (list (sm-getstart dfa)))))
+                                    (sm-getstates dfa)))))
+
+;update-rules: list-of-rules list-of-states -> list-of-rules
+;Purpose: to remove any rules that have to do with an unreachable state
+(define (update-rules rules non-reachable-states)
+  (cond [(null? rules) rules]
+        [(or (member (caar rules) non-reachable-states) (member (caddar rules) non-reachable-states))
+         (update-rules (cdr rules) non-reachable-states)]
+        [else (cons (car rules) (update-rules (cdr rules) non-reachable-states))]))
+
+(check-expect (update-rules '((Q0 a Q1)
+                              (Q1 a Q0)
+                              (Q3 a Q3)) '(Q3))
+              '((Q0 a Q1)
+                (Q1 a Q0)))
 
 
 ;remove-noneachable-states: list-of-rules list-of-state -> list-of-states
@@ -67,11 +83,6 @@
                                            (Q1 b Q1)
                                            (Q3 b Q3)) '(Q0))
               '(Q0 Q1))
-
-
-
-
-(check-expect (sm-testequiv? (remove-nonreachable TESTONE) TESTONE-EQ) #t)
 
 
 
