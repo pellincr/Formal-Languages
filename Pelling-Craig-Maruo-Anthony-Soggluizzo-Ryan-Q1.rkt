@@ -85,6 +85,7 @@
               '(Q0 Q1))
 
 
+(sm-testequiv? TESTONE TESTONE-EQ)
 
 
 
