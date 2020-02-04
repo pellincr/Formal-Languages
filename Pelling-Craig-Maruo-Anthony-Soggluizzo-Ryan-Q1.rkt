@@ -109,6 +109,8 @@
 ;                            Where (dfa B) = {dfa A, (K+1)U} && (dfa A) has no nonreachale states
 ;
 ; dfa B = {dfa A, (K+1)U} = {{dfa A, (K)U}, (1)U} = {dfa A,(1)U}
+; because of the nature of the remove-nonreachable function, there shouldn't be a difference between any number of *U
+; since every state is checked through recursion to determine if it is reachable or nonreachable.
 
 
 ;remove-nonreachable: dfa -> dfa
