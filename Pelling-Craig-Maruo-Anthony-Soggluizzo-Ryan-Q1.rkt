@@ -28,7 +28,7 @@
   (make-dfa '(Q0 Q1 Q2 Q3 Q4 Q5)
             '(a b)
             'Q1
-            '(Q0 Q4 Q5)
+            '(Q4)
             '((Q0 a Q5)
               (Q1 a Q2)
               (Q2 a Q3)
@@ -125,24 +125,56 @@
    (sm-getalphabet dfa)
    (sm-getstart dfa)
    (sm-getfinals dfa)
-   (update-rules (sm-getrules dfa) (filter
-                                    (lambda (x) (member x (remove-nonreachable-states (sm-getrules dfa) (list (sm-getstart dfa)))))
-                                    (sm-getstates dfa)))))
+   (update-rules (sm-getrules dfa) (nonreachable-states dfa))))
+
+
+
+
+;nonreachable-states: dfa -> list of non-reachable states
+;Purpose: to output the non-reachable states from a given dfa
+(define (nonreachable-states dfa)
+  (filter (lambda (x) (not (member x (remove-nonreachable-states (sm-getrules dfa) (list (sm-getstart dfa))))))
+          (sm-getstates dfa)))
+
+(check-expect (nonreachable-states TESTONE) '(ds Q3))
+(check-expect (nonreachable-states TESTTWO) '(ds Q0 Q5)) 
 
 ;update-rules: list-of-rules list-of-states -> list-of-rules
 ;Purpose: to remove any rules that have to do with an unreachable state
 (define (update-rules rules non-reachable-states)
   (cond [(null? rules) rules]
-        [(or (member (caar rules) non-reachable-states) (member (caddar rules) non-reachable-states))
+        [(or (member (caar rules) non-reachable-states) (member (caddar rules) non-reachable-states) (eqv? (caar rules) 'ds) (eqv? (caddar rules) 'ds))
          (update-rules (cdr rules) non-reachable-states)]
         [else (cons (car rules) (update-rules (cdr rules) non-reachable-states))]))
 
 (check-expect (update-rules '((Q0 a Q1)
                               (Q1 a Q0)
-                              (Q3 a Q3)) '(Q3))
+                              (Q3 a Q3)
+                              (ds a ds)
+                              (ds b ds)) '(Q3))
               '((Q0 a Q1)
                 (Q1 a Q0)))
+(check-expect (update-rules '((Q0 a Q1)
+                              (Q1 a Q0)
+                              (Q3 a Q3)
+                              (Q0 b Q0)
+                              (Q1 b Q1)
+                              (Q3 b Q3)) '(Q3))
+              '((Q0 a Q1)
+                (Q1 a Q0)
+                (Q0 b Q0)
+                (Q1 b Q1)))
 
+(check-expect (update-rules (sm-getrules TESTTWO) '(Q0 Q5))
+              '((Q1 a Q2)
+                (Q2 a Q3)
+                (Q3 a Q4)
+                (Q4 a Q4)
+                (Q1 b Q3)
+                (Q3 b Q2)
+                (Q2 b Q4)
+                (Q4 b Q4)
+                ))
 
 ;remove-noneachable-states: list-of-rules list-of-state -> list-of-states
 ;Purpose: to return the list of states that are reachable given the rules
@@ -161,17 +193,20 @@
 
 
 (check-expect (remove-nonreachable-states '((Q0 a Q1)
-                                           (Q1 a Q0)
-                                           (Q3 a Q3)
-                                           (Q0 b Q0)
-                                           (Q1 b Q1)
-                                           (Q3 b Q3)) '(Q0))
+                                            (Q1 a Q0)
+                                            (Q3 a Q3)
+                                            (Q0 b Q0)
+                                            (Q1 b Q1)
+                                            (Q3 b Q3)) '(Q0))
               '(Q0 Q1))
 
+(check-expect (remove-nonreachable-states (sm-getrules TESTTWO) '(Q1))
+              '(Q1 Q2 Q3 Q4))
 
-(sm-testequiv? TESTONE TESTONE-EQ)
-(sm-testequiv? TESTTWO TESTTWO-EQ)
-(sm-testequiv? TESTTHREE TESTTHREE-EQ)
+
+(sm-testequiv? (remove-nonreachable TESTONE) TESTONE-EQ)
+(sm-testequiv? (remove-nonreachable TESTTWO) TESTTWO-EQ)
+(sm-testequiv? (remove-nonreachable TESTTHREE) TESTTHREE-EQ)
 
 
 
@@ -180,3 +215,4 @@
 
 
 (test)
+
