@@ -98,15 +98,15 @@
 ;
 ; Say A and B are dfas
 ; Prove: (remove-nonreachable (dfa B)) == (dfaA)
-;                            Where (dfa B) = {dfa A, (N)U} && (dfa A) has no nonreachale states
+;                            Where (dfa B) = {dfa A, (N)U} && (dfa A) has no nonreachable states
 ;
 ; Base Case: N = 0, therefore, dfa B contains no nonreachable states, therefore (dfa B) == (dfa A), therefore (remove-nonreachable (dfa B)) == (dfa A)
 ;
 ; Assume: For some K where K = N, (remove-nonreachable (dfa B) == (dfa A))
-;                            Where (dfa B) = {dfa A, (K)U} && (dfa A) has no nonreachale states
+;                            Where (dfa B) = {dfa A, (K)U} && (dfa A) has no nonreachable states
 ;
 ; Prove: (remove-nonreachable (dfa B)) == (dfa A)
-;                            Where (dfa B) = {dfa A, (K+1)U} && (dfa A) has no nonreachale states
+;                            Where (dfa B) = {dfa A, (K+1)U} && (dfa A) has no nonreachable states
 ;
 ; dfa B = {dfa A, (K+1)U} = {{dfa A, (K)U}, (1)U} = {dfa A,(1)U}
 ; because of the nature of the remove-nonreachable function, there shouldn't be a difference between any number of *U
