@@ -1,0 +1,40 @@
+#lang racket
+(require fsm)
+(require test-engine/racket-tests)
+
+; TEMPLATE
+; ;f-on-ndfa: ndfa -> ???
+; ;Purpose: ???
+; (define (f-on-ndfa ndfa)
+;   ;INVENTORY
+;   ;(sm-getstates ndfa) -> returns the states of the given machine
+;   ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
+;   ;(sm-getrules ndfa) -> returns the rules of the given machine
+;   ;(sm-getstart ndfa) -> returns the start state of the given machine
+;   ;(sm-getfinals ndfa) -> returns the final states of the machine
+;   ...)
+
+;Prove that a regular language is closed under Prefix
+
+;EXAMPLES
+
+;Step 1: get the reachable states from the given dfa
+;Step 2: filter out any reachable states that do not have a path to the final state(s)
+;Step 3: This list of states is now the new machines list of final states
+
+
+;accept-prefixes: ndfa -> ndfa
+;Purpose: to build an dfa that accepts all Prefixs of the initial dfa
+(define (accept-prefixes ndfa)
+  ;INVENTORY
+  ;(sm-getstates ndfa) -> returns the states of the given machine
+  ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
+  ;(sm-getrules ndfa) -> returns the rules of the given machine
+  ;(sm-getstart ndfa) -> returns the start state of the given machine
+  ;(sm-getfinals ndfa) -> returns the final states of the machine
+  (make-ndfa (sm-getstates ndfa)
+             (sm-getalphabet ndfa)
+             (sm-getrules ndfa)
+             (sm-getstart ndfa)
+             (filter path-to-finish? (get-reachable ndfa))))
+(test)
