@@ -46,7 +46,7 @@
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
   (let (;The list of all states that have a path to the final state(s)
-        (pathable-states (path-to-finish ndfa))
+        (pathable-states (path-to-finish ndfa (sm-getfinals ndfa)))
         ;The list of all reachable states
         (reachable-states (get-reachable ndfa)))
     (make-ndfa (sm-getstates ndfa)
@@ -80,30 +80,45 @@
   ;(sm-getrules ndfa) -> returns the rules of the given machine
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
-  (let (;reachable: (listof states) (listof states) ->(listof states)
-        ;Purpose: to process through the ndfa and return the reachable states
-        ;ACCUM INV: the states that have been reached so far
-        (define (reachable states-left reached)
-          (cond [(null? states-left) reached]
-                [else
-                 (let ((neighbors (filter (lambda (x) (not (member x reached))) (generate-neighbors (sm-getrules ndfa) (car states-left)))))
-                   (reachable (list-append neighbors (cdr states-left)) (cons (car states-left) reached)))])))
+  (letrec ;reachable: (listof states) (listof states) ->(listof states)
+      ;Purpose: to process through the ndfa and return the reachable states
+      ;ACCUM INV: the states that have been reached so far
+      ((reachable (lambda(states-left reached)
+       (cond [(null? states-left) reached]
+             [else
+              (letrec ((neighbors (filter (lambda (x) (not (member x reached))) (generate-neighbors (sm-getrules ndfa) (car states-left)))))
+                (reachable (append neighbors (cdr states-left)) (cons (car states-left) reached)))]))))
     (reachable '((sm-getstart ndfa)) '())))
 
 
 ;path-to-finish: ndfa-> list-of-states
 ;Purpose: returns all possible states that can reach the final state(s)
 ;ACCUM INV:
-(define (path-to-finish ndfa)
+(define (path-to-finish ndfa final-states)
   ;INVENTORY
   ;(sm-getstates ndfa) -> returns the states of the given machine
   ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
   ;(sm-getrules ndfa) -> returns the rules of the given machine
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
-  (let ((define (valid valid-states)
-          ))
-    (valid '((sm-getstart ndfa)))))
+  (letrec;valid: (listof states) (listof states) -> (listof states)
+        ;Purpose: to return the list of states the reach the given final state
+        ;ACCUM INV: the states that can reach the final state
+        ((valid (lambda (states-left current-valid-states)
+          ;INVENTORY
+          ;(sm-getstates ndfa) -> returns the states of the given machine
+          ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
+          ;(sm-getrules ndfa) -> returns the rules of the given machine
+          ;(sm-getstart ndfa) -> returns the start state of the given machine
+          ;(sm-getfinals ndfa) -> returns the final states of the machine
+          (cond [(null? states-left) current-valid-states]
+                [else (letrec (;neighbors: the list of neighbors of the first of states-left without any that already
+                            ;exist in the accumulator
+                            (neighbors (filter (lambda (x) (not (member x current-valid-states)))
+                                               (generate-neighbors (sm-getrules ndfa) (car states-left)))))
+                      (valid (append neighbors (cdr states-left)) (cons (car states-left) current-valid-states)))]))))
+    (cond [(null? (cdr final-states)) (valid '((car final-states)) '())]
+          [else (append (valid '((car final-states)) '()) (path-to-finish ndfa (cdr final-states)))])))
 
 
 ;generate-neighbors: (listof rules) symbol -> (listof-ndfa)
