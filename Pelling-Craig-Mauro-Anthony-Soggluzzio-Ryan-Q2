@@ -46,51 +46,84 @@
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
   (let (;The list of all states that have a path to the final state(s)
-        (pathable-states (path-to-finish ndfa '((sm-getstartndfa))))
+        (pathable-states (path-to-finish ndfa))
         ;The list of all reachable states
-        (reachable-states (get-reachable ndfa '())))
+        (reachable-states (get-reachable ndfa)))
     (make-ndfa (sm-getstates ndfa)
                (sm-getalphabet ndfa)
                (sm-getstart ndfa)
                (filter (lambda (x) (member x pathable-states)) reachable-states)
                (sm-getrules ndfa))))
 
-;get-reachable: ndfa accum-> list-of-states
+
+
+;prefix-check: ndfa word -> boolean
+;Purpose: to determine if all prefixes of the given word are accepted
+(define (prefix-check ndfa word)
+  ;INVENTORY
+  ;(sm-getstates ndfa) -> returns the states of the given machine
+  ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
+  ;(sm-getrules ndfa) -> returns the rules of the given machine
+  ;(sm-getstart ndfa) -> returns the start state of the given machine
+  ;(sm-getfinals ndfa) -> returns the final states of the machine
+  (cond [(and (eq? word "") (eq? (sm-apply ndfa word) 'accept)) #t]
+        [else (and (eq? (sm-apply ndfa word) 'accept) (prefix-check ndfa (substring word 1)))]))
+
+
+;get-reachable: ndfa-> list-of-states
 ;Purpose: to return the list of reachable states of te given ndfa using breath-first-search
 ;ACCUM INV: the accumulator is all of the states that have been reached so far
-(define (get-reachable ndfa reached)
+(define (get-reachable ndfa)
   ;INVENTORY
   ;(sm-getstates ndfa) -> returns the states of the given machine
   ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
   ;(sm-getrules ndfa) -> returns the rules of the given machine
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
-  (cond [])
-  )
+  (let (;reachable: (listof states) (listof states) ->(listof states)
+        ;Purpose: to process through the ndfa and return the reachable states
+        ;ACCUM INV: the states that have been reached so far
+        (define (reachable states-left reached)
+          (cond [(null? states-left) reached]
+                [else
+                 (let ((neighbors (filter (lambda (x) (not (member x reached))) (generate-neighbors (sm-getrules ndfa) (car states-left)))))
+                   (reachable (list-append neighbors (cdr states-left)) (cons (car states-left) reached)))])))
+    (reachable '((sm-getstart ndfa)) '())))
 
 
-;path-to-finish: ndfa accum-> list-of-states
+;path-to-finish: ndfa-> list-of-states
 ;Purpose: returns all possible states that can reach the final state(s)
 ;ACCUM INV:
-(define (path-to-finish ndfa valid-states)
+(define (path-to-finish ndfa)
   ;INVENTORY
   ;(sm-getstates ndfa) -> returns the states of the given machine
   ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
   ;(sm-getrules ndfa) -> returns the rules of the given machine
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
-  )
+  (let ((define (valid valid-states)
+          ))
+    (valid '((sm-getstart ndfa)))))
 
 
-;generate-neighbors: symbol ndfa -> (listof-ndfa)
+;generate-neighbors: (listof rules) symbol -> (listof-ndfa)
 ;Purpose: to generate the neighbors of the given symbol in the given ndfa
-(define (generate-neighbors state ndfa)
+(define (generate-neighbors rules state)
   ;INVENTORY
   ;(sm-getstates ndfa) -> returns the states of the given machine
   ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
   ;(sm-getrules ndfa) -> returns the rules of the given machine
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
-  )
+  (cond [(null? rules) '()]
+        [(eq? (caar rules) state) (cons (caddar rules) (generate-neighbors (cdr rules) state))]
+        [else (generate-neighbors (cdr rules) state)]))
+
+(check-expect (generate-neighbors (list '(A a B)
+                                        '(A b A)
+                                        '(B b A)
+                                        '(B a B))
+                                  'A)
+              '(B A))
 
 (test)
