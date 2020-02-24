@@ -30,11 +30,21 @@
                (Q-4 b Q-5)
                (Q-5 ,EMP Q-0))))
 
+(define KLEENESTAR-abUaba-2
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5 Q-6)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 a Q-1)
+               (Q-1 b Q-2)
+               (Q-2 a Q-3)
+               (Q-3 ,EMP Q-0)
+               (Q-3 a Q-6)
+               (Q-0 a Q-4)
+               (Q-4 b Q-5)
+               (Q-5 ,EMP Q-0))))
 
 
-;Step 1: get the reachable states from the given dfa
-;Step 2: filter out any reachable states that do not have a path to the final state(s)
-;Step 3: This list of states is now the new machines list of final states
 
 ;accept-prefixes: ndfa -> ndfa
 ;Purpose: to build an dfa that accepts all Prefixs of the initial dfa
@@ -66,8 +76,15 @@
   ;(sm-getrules ndfa) -> returns the rules of the given machine
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
-  (cond [(and (eq? word "") (eq? (sm-apply ndfa word) 'accept)) #t]
-        [else (and (eq? (sm-apply ndfa word) 'accept) (prefix-check ndfa (substring word 1)))]))
+  (cond [(and (null? word) (eq? (sm-apply ndfa word) 'accept)) #t]
+        [else (and (eq? (sm-apply ndfa word) 'accept) (prefix-check ndfa (reverse (cdr (reverse word)))))]))
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '()) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a b a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a b a b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a b a b b)) #f)
+
 
 
 ;get-reachable: ndfa-> list-of-states
@@ -91,7 +108,12 @@
                                  ;that already exists in the accumulator
                                  (neighbors (filter (lambda (x) (not (member x reached))) (generate-neighbors (sm-getrules ndfa) (car states-left)))))
                              (reachable (append neighbors (cdr states-left)) (cons (car states-left) reached)))]))))
-    (reachable '((sm-getstart ndfa)) '())))
+    (reachable (list(sm-getstart ndfa)) '())))
+
+(check-expect (get-reachable KLEENESTAR-abUaba)
+              '(Q-5 Q-4 Q-3 Q-2 Q-1 Q-0))
+(check-expect (get-reachable KLEENESTAR-abUaba-2)
+              '(Q-5 Q-4 Q-6 Q-3 Q-2 Q-1 Q-0))
 
 
 ;path-to-finish: ndfa (listof states)-> (listof states)
@@ -118,11 +140,16 @@
                       [else (letrec (;neighbors: the list of neighbors of the first of states-left without any that already
                                      ;exist in the accumulator
                                      (neighbors (filter (lambda (x) (not (member x current-valid-states)))
-                                                        (generate-neighbors (sm-getrules ndfa) (car states-left)))))
+                                                        (generate-neighbors-reversed (sm-getrules ndfa) (car states-left)))))
                               (valid (append neighbors (cdr states-left)) (cons (car states-left) current-valid-states)))]))))
 
-    (cond [(null? (cdr final-states)) (valid '((car final-states)) '())]
-          [else (append (valid '((car final-states)) '()) (path-to-finish ndfa (cdr final-states)))])))
+    (cond [(null? (cdr final-states)) (valid (list(car final-states)) '())]
+          [else (append (valid (list (car final-states)) '()) (path-to-finish ndfa (cdr final-states)))])))
+
+(check-expect (path-to-finish KLEENESTAR-abUaba '(Q-0))
+              '(Q-4 Q-5 Q-1 Q-2 Q-3 Q-0))
+(check-expect (path-to-finish KLEENESTAR-abUaba-2 '(Q-0))
+              '(Q-4 Q-5 Q-1 Q-2 Q-3 Q-0))
 
 
 ;generate-neighbors: (listof rules) symbol -> (listof-ndfa)
@@ -135,14 +162,55 @@
   ;(sm-getstart ndfa) -> returns the start state of the given machine
   ;(sm-getfinals ndfa) -> returns the final states of the machine
   (cond [(null? rules) '()]
-        [(eq? (caar rules) state) (cons (caddar rules) (generate-neighbors (cdr rules) state))]
+        [(eq? (caar rules) state) (cons (caddar rules) (filter (lambda (x) (not (eq? x (caddar rules))))
+                                                               (generate-neighbors (cdr rules) state)))]
         [else (generate-neighbors (cdr rules) state)]))
 
-(check-expect (generate-neighbors (list '(A a B)
-                                        '(A b A)
-                                        '(B b A)
-                                        '(B a B))
+(check-expect (generate-neighbors '((A a B)
+                                    (A b A)
+                                    (B b A)
+                                    (B a B))
                                   'A)
               '(B A))
+
+(check-expect (generate-neighbors '() 'A) '())
+(check-expect (generate-neighbors '((A a B)
+                                    (A b A)
+                                    (A c C)
+                                    (B a B)
+                                    (B b A)
+                                    (B c C)
+                                    (C a C)
+                                    (C b C)
+                                    (C c C))
+                                  'C)
+              '(C))
+
+
+;generate-neighbors-reversed: (listof rules) state -> (listof states)
+;Purose: to generate the list of states that reach a given state
+(define (generate-neighbors-reversed rules state)
+  ;INVENTORY
+  ;(sm-getstates ndfa) -> returns the states of the given machine
+  ;(sm-getalphabet ndfa) -> returns the alphabet of the given machine
+  ;(sm-getrules ndfa) -> returns the rules of the given machine
+  ;(sm-getstart ndfa) -> returns the start state of the given machine
+  ;(sm-getfinals ndfa) -> returns the final states of the machine
+  (cond [(null? rules) '()]
+        [(eq? (caddar rules) state) (cons (caar rules) (filter (lambda (x) (not (eq? x (caar rules))))
+                                                               (generate-neighbors-reversed (cdr rules) state)))]
+        [else (generate-neighbors-reversed (cdr rules) state)]))
+
+(check-expect (generate-neighbors-reversed '((A a B)
+                                             (A b B)
+                                             (A c C)
+                                             (B a A)
+                                             (B b B)
+                                             (B c C)
+                                             (C a C)
+                                             (C b C)
+                                             (C c C))
+                                           'C)
+              '(A B C))
 
 (test)
