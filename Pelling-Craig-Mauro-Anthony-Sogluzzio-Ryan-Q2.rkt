@@ -30,7 +30,7 @@
                (Q-4 b Q-5)
                (Q-5 ,EMP Q-0))))
 
-(define KLEENESTAR-abUaba-2
+(define KLEENESTAR-abUaba-noDirect
   (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5 Q-6)
              '(a b)
              'Q-0
@@ -44,7 +44,7 @@
                (Q-4 b Q-5)
                (Q-5 ,EMP Q-0))))
 
-(define KLEENESTAR-abUaba-3
+(define KLEENESTAR-abUaba-unreachable
   (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5 Q-6)
              '(a b)
              'Q-0
@@ -70,6 +70,74 @@
                (Q-0 b Q-3)
                (Q-3 a Q-4)
                (Q-4 ,EMP Q-0))))
+
+(define KLEENESTAR-bbUba-noDirect
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 b Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-2 a Q-5)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0))))
+
+(define KLEENESTAR-bbUba-unreachable
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 b Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0)
+               (Q-5 a Q-5)
+               (Q-5 b Q-5 ))))
+
+(define KLEENESTAR-abUba
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 a Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0))))
+
+(define KLEENESTAR-abUba-noDirect
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 a Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-2 a Q-5)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0))))
+
+(define KLEENESTAR-abUba-unreachable
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 a Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0)
+               (Q-5 a Q-5)
+               (Q-5 b Q-5))))
+
+
 
 
 
@@ -114,14 +182,22 @@
 (check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a b a b)) #t)
 (check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba) '(a b a b b)) #f)
 
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '()) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a)) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a b)) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a b a)) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a b a b)) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a b a b a)) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a b a b a a)) #t)
-(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-3) '(a b a b a a a)) #f)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-noDirect) '()) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-noDirect) '(a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-noDirect) '(a b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-noDirect) '(a b a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-noDirect) '(a b a b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-noDirect) '(a b a b b a)) #f)
+
+
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '()) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a b a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a b a b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a b a b a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a b a b a a)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUaba-unreachable) '(a b a b a a a)) #f)
 
 (check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba) '()) #t)
 (check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba) '(b)) #t)
@@ -130,6 +206,40 @@
 (check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba) '(b b b a)) #t)
 (check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba) '(a b a b)) #f)
 
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-noDirect) '())#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-noDirect) '(b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-noDirect) '(b b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-noDirect) '(b b b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-noDirect) '(b b b a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-noDirect) '(a b b b))#f)
+
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-unreachable) '()) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-unreachable) '(b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-unreachable) '(b b)) #t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-unreachable) '(b b b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-unreachable) '(b b b a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-bbUba-unreachable) '(a b a b))#f)
+
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba) '())#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba) '(a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba) '(a b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba) '(a b b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba) '(a b b a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba) '(b b b a))#f)
+
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-noDirect) '())#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-noDirect) '(a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-noDirect) '(a b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-noDirect) '(a b b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-noDirect) '(a b b a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-noDirect) '(b b b b))#f)
+
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-unreachable) '())#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-unreachable) '(a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-unreachable) '(a b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-unreachable) '(a b b))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-unreachable) '(a b b a))#t)
+(check-expect (prefix-check (accept-prefixes KLEENESTAR-abUba-unreachable) '(b b b a))#f)
 
 
 
@@ -158,13 +268,25 @@
 
 (check-expect (get-reachable KLEENESTAR-abUaba)
               '(Q-5 Q-4 Q-3 Q-2 Q-1 Q-0))
-(check-expect (get-reachable KLEENESTAR-abUaba-2)
+(check-expect (get-reachable KLEENESTAR-abUaba-noDirect)
               '(Q-5 Q-4 Q-6 Q-3 Q-2 Q-1 Q-0))
-(check-expect (get-reachable KLEENESTAR-abUaba-3)
+(check-expect (get-reachable KLEENESTAR-abUaba-unreachable)
               '(Q-5 Q-4 Q-3 Q-2 Q-1 Q-0))
 
 (check-expect (get-reachable KLEENESTAR-bbUba)
               '(Q-4 Q-3 Q-2 Q-1 Q-0))
+(check-expect (get-reachable KLEENESTAR-bbUba-unreachable)
+              '(Q-4 Q-3 Q-2 Q-1 Q-0))
+(check-expect (get-reachable KLEENESTAR-bbUba-noDirect)
+              '(Q-4 Q-3 Q-5 Q-2 Q-1 Q-0))
+
+(check-expect (get-reachable KLEENESTAR-abUba)
+              '(Q-4 Q-3 Q-2 Q-1 Q-0))
+(check-expect (get-reachable KLEENESTAR-abUba-noDirect)
+                '(Q-4 Q-3 Q-5 Q-2 Q-1 Q-0))
+(check-expect (get-reachable KLEENESTAR-abUba-unreachable)
+               '(Q-4 Q-3 Q-2 Q-1 Q-0))
+
 
 
 ;path-to-finish: ndfa (listof states)-> (listof states)
@@ -199,11 +321,22 @@
 
 (check-expect (path-to-finish KLEENESTAR-abUaba '(Q-0))
               '(Q-4 Q-5 Q-1 Q-2 Q-3 Q-0))
-(check-expect (path-to-finish KLEENESTAR-abUaba-2 '(Q-0))
+(check-expect (path-to-finish KLEENESTAR-abUaba-noDirect '(Q-0))
               '(Q-4 Q-5 Q-1 Q-2 Q-3 Q-0))
-(check-expect (path-to-finish KLEENESTAR-abUaba-3 '(Q-0))
+(check-expect (path-to-finish KLEENESTAR-abUaba-unreachable '(Q-0))
               '(Q-4 Q-5 Q-1 Q-2 Q-3 Q-0))
 (check-expect (path-to-finish KLEENESTAR-bbUba '(Q-0))
+              '(Q-3 Q-4 Q-1 Q-2 Q-0))
+(check-expect (path-to-finish KLEENESTAR-bbUba-unreachable '(Q-0))
+              '(Q-3 Q-4 Q-1 Q-2 Q-0))
+(check-expect (path-to-finish KLEENESTAR-bbUba-noDirect '(Q-0))
+              '(Q-3 Q-4 Q-1 Q-2 Q-0))
+
+(check-expect (path-to-finish KLEENESTAR-abUba '(Q-0))
+              '(Q-3 Q-4 Q-1 Q-2 Q-0))
+(check-expect (path-to-finish KLEENESTAR-abUba-noDirect '(Q-0))
+               '(Q-3 Q-4 Q-1 Q-2 Q-0))
+(check-expect (path-to-finish KLEENESTAR-abUba-unreachable '(Q-0))
               '(Q-3 Q-4 Q-1 Q-2 Q-0))
 
 
@@ -279,14 +412,15 @@
 ; ;An empty language can only contain words that are ()
 ; ;any word must be empty and will only have one prefix which is itself, the empty string e
 ; ;the only v must also be empty which will be a prefix of w where w E L
+; ;it will take 0 transitions to go from the starting state to the finish state
 ;
 ; ;Assume: Prefix(L) = {v | w E L and v is a prefix of w}
 ;
 ; ;Prove: for some k where k = w
-; ;Prefix(L) = {v | k+1 E L and v is a prefix of k+1} where k+1 is a word that contains k, followed by an extra letter in the alphabet
+; ;Prefix(L) = {v | k+1 E L and v is a prefix of k+1} where k+1 is an accepted word that contains k, followed by an extra letter in the alphabet
 ;
 ; ;k is a prefix of the word k+1
 ; ;v is known to be a prefix of any word k
-; ;by definition of a prefix, k would be a prefix of k+1
+; ;by definition of a prefix, k would be a prefix of k+1 as long as k+1 is an accepted word
 ; ;based on what was already assumed, v is known to be a prefix of k
 ; ;therefore, v is a prefix of a prefix of k+1, so v must be a prefix of k+1
