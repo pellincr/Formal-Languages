@@ -31,11 +31,62 @@
               (Q0 b Q0)
               (Q1 b Q1))))
 
+(define TESTTWO
+  (make-dfa '(Q0 Q1 Q2 Q3)
+            '(a b)
+            'Q0
+            '(Q0 Q1)
+            '((Q0 a Q1)
+              (Q1 a Q2)
+              (Q2 a Q1)
+              (Q3 a Q3)
+              (Q3 b Q3)
+              (Q0 b Q2)
+              (Q2 b Q1)
+              (Q1 b Q0))))
+
+(define TESTTWO-EQ
+  (make-dfa '(Q0 Q1 Q2)
+            '(a b)
+            'Q0
+            '(Q0 Q1)
+            '((Q0 a Q1)
+              (Q1 a Q2)
+              (Q2 a Q1)
+              (Q0 b Q2)
+              (Q2 b Q1)
+              (Q1 b Q0))))
+
+(define TESTTHREE
+  (make-dfa '(Q0 Q1 Q2 Q3)
+            '(a b)
+            'Q0
+            '(Q1)
+            '((Q0 a Q1)
+              (Q1 b Q3)
+              (Q3 b Q3)
+              (Q2 b Q0))))
+(define TESTTHREE-EQ
+  (make-dfa '(Q0 Q1)
+            '(a b)
+            'Q0
+            '(Q1)
+            '((Q0 a Q1))))
+
+
+
+
+
 
 ;remove-unproductive-rules: a-dfa -> regular-grammar
 ;Purpose: to remove all unproductive "silly" rules and states from the given dfa and turn it into a grammar
 (define (remove-unproductive a-dfa)
   ;INVENTORY
+  ;(sm-getstates a-dfa) returns the states of the given dfa
+  ;(sm-getalphabet a-dfa) returns the alphabet of the given dfa
+  ;(sm-getstart a-dfa) returns the start state of the given dfa
+  ;(sm-getfinals a-dfa) returns the final states of the given dfa
+  ;(sm-getrules a-dfa) returns the rules of the given dfa
   (let ((new-states (update-states a-dfa))
         (new-alphabet (sm-getalphabet a-dfa))
         (new-start (sm-getstart a-dfa))
@@ -47,14 +98,31 @@
       new-alphabet
       new-start
       new-finals
-      new-rules))))
+      new-rules
+      'no-dead))))
 
 (check-expect (grammar-testequiv (remove-unproductive TESTONE) (remove-unproductive TESTONE-EQ)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTONE) (sm->grammar TESTONE)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTONE) (sm->grammar TESTONE-EQ)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTONE-EQ) (sm->grammar TESTONE-EQ)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTTWO) (sm->grammar TESTTWO-EQ)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTTWO) (sm->grammar TESTTWO)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTTWO-EQ) (sm->grammar TESTTWO-EQ))#t)
+(check-expect (grammar-testequiv (remove-unproductive TESTTHREE) (sm->grammar TESTTHREE-EQ)) #t)
+(check-expect (grammar-testequiv (remove-unproductive TESTTHREE) (sm->grammar TESTTHREE))#t)
+(check-expect (grammar-testequiv (remove-unproductive TESTTHREE-EQ) (sm->grammar TESTTHREE-EQ))#t)
+
 
 ;update-states: dfa -> (listof states)
 ;Purpose: to return the list of states without unreachable states and states that have no
 ;path to a final state
 (define (update-states a-dfa)
+  ;INVENTORY
+  ;(sm-getstates a-dfa) returns the states of the given dfa
+  ;(sm-getalphabet a-dfa) returns the alphabet of the given dfa
+  ;(sm-getstart a-dfa) returns the start state of the given dfa
+  ;(sm-getfinals a-dfa) returns the final states of the given dfa
+  ;(sm-getrules a-dfa) returns the rules of the given dfa
   (let (;reachable: list of all reachable states
         (reachable (get-reachable a-dfa))
         ;finishables: list of all states that have a path to a final state
@@ -63,6 +131,11 @@
 
 (check-expect (update-states TESTONE) '(Q0 Q1))
 (check-expect (update-states TESTONE-EQ) '(Q0 Q1))
+(check-expect (update-states TESTTWO) '(Q2 Q1 Q0))
+(check-expect (update-states TESTTWO-EQ) '(Q2 Q1 Q0))
+(check-expect (update-states TESTTHREE) '(Q0 Q1))
+(check-expect (update-states TESTTHREE-EQ) '(Q0 Q1))
+
 
 
 
@@ -71,9 +144,10 @@
 ;Purpose: to remove any rule that is not connected to a state in te given list of states
 (define (update-rules rules states)
   (cond [(null? rules) '()]
-        [(or (member (caar rules) states) (member (caddar rules) states)) (cons (car rules)
-                                                                                (update-rules (cdr rules) states))]
-        [else (update-rules (cdr rules) states)]))
+        [(or (not (member (caar rules) states)) (not (member (caddar rules) states)))
+                                                                                (update-rules (cdr rules) states)]
+        [else (cons (car rules) (update-rules (cdr rules) states))]))
+
 (check-expect (update-rules (sm-getrules TESTONE) '(Q0 Q1))
               '((Q0 a Q1)
                 (Q1 a Q0)
@@ -84,6 +158,25 @@
                 (Q1 a Q0)
                 (Q0 b Q0)
                 (Q1 b Q1)))
+(check-expect (update-rules (sm-getrules TESTTWO) '(Q0 Q1 Q2))
+              '((Q0 a Q1)
+              (Q1 a Q2)
+              (Q2 a Q1)
+              (Q0 b Q2)
+              (Q2 b Q1)
+              (Q1 b Q0)))
+(check-expect (update-rules (sm-getrules TESTTWO-EQ) '(Q0 Q1 Q2))
+              '((Q0 a Q1)
+              (Q1 a Q2)
+              (Q2 a Q1)
+              (Q0 b Q2)
+              (Q2 b Q1)
+              (Q1 b Q0)))
+
+(check-expect (update-rules (sm-getrules TESTTHREE) '(Q0 Q1))
+              '((Q0 a Q1)))
+(check-expect (update-rules (sm-getrules TESTTHREE-EQ) '(Q0 Q1))
+              '((Q0 a Q1)))
 
 ;get-reachable: dfa-> (listof states)
 ;Purpose: to return the list of reachable states of te given dfa using breath-first-search
@@ -109,6 +202,11 @@
     (reachable (list(sm-getstart dfa)) '())))
 
 (check-expect (get-reachable TESTONE) '(Q0 Q1))
+(check-expect (get-reachable TESTONE-EQ) '(Q0 Q1))
+(check-expect (get-reachable TESTTWO) '(Q2 Q1 Q0))
+(check-expect (get-reachable TESTTWO-EQ) '(Q2 Q1 Q0))
+(check-expect (get-reachable TESTTHREE)'(ds Q3 Q1 Q0))
+(check-expect (get-reachable TESTTHREE-EQ) '(ds Q1 Q0))
 
 ;path-to-finish: dfa (listof states)-> (listof states)
 ;Purpose: returns all possible states that can reach the final state(s)
@@ -142,6 +240,19 @@
 
 (check-expect (path-to-finish TESTONE (sm-getfinals TESTONE))
               '(Q0 Q1))
+(check-expect (path-to-finish TESTONE-EQ (sm-getfinals TESTONE-EQ))
+              '(Q0 Q1))
+
+(check-expect (path-to-finish TESTTWO (sm-getfinals TESTTWO))
+              '(Q2 Q1 Q0))
+(check-expect (path-to-finish TESTTWO-EQ (sm-getfinals TESTTWO-EQ))
+              '(Q2 Q1 Q0))
+
+(check-expect (path-to-finish TESTTHREE (sm-getfinals TESTTHREE))
+              '(Q2 Q0 Q1))
+(check-expect (path-to-finish TESTTHREE-EQ (sm-getfinals TESTTHREE-EQ))
+              '(Q0 Q1))
+
 
 
 
@@ -161,6 +272,18 @@
 
 (check-expect (generate-neighbors (sm-getrules TESTONE) 'Q0)
               '(Q1 Q0))
+(check-expect (generate-neighbors (sm-getrules TESTONE-EQ) 'Q0)
+              '(Q1 Q0))
+
+(check-expect (generate-neighbors (sm-getrules TESTTWO) 'Q0)
+              '(Q1 Q2))
+(check-expect (generate-neighbors (sm-getrules TESTTWO-EQ) 'Q0)
+              '(Q1 Q2))
+
+(check-expect (generate-neighbors (sm-getrules TESTTHREE) 'Q0)
+              '(Q1 ds))
+(check-expect (generate-neighbors (sm-getrules TESTTHREE-EQ) 'Q0)
+              '(Q1 ds))
 
 ;generate-neighbors-reversed: (listof rules) state -> (listof states)
 ;Purose: to generate the list of states that reach a given state
@@ -175,5 +298,36 @@
         [(eq? (caddar rules) state) (cons (caar rules) (filter (lambda (x) (not (eq? x (caar rules))))
                                                                (generate-neighbors-reversed (cdr rules) state)))]
         [else (generate-neighbors-reversed (cdr rules) state)]))
+
+(check-expect (generate-neighbors-reversed (sm-getrules TESTONE) 'Q0) '(Q1 Q0))
+(check-expect (generate-neighbors-reversed (sm-getrules TESTONE-EQ) 'Q0) '(Q1 Q0))
+
+(check-expect (generate-neighbors-reversed (sm-getrules TESTTWO) 'Q0) '(Q1))
+(check-expect (generate-neighbors-reversed (sm-getrules TESTTWO-EQ) 'Q0) '(Q1))
+
+(check-expect (generate-neighbors-reversed (sm-getrules TESTTHREE) 'Q0) '(Q2))
+(check-expect (generate-neighbors-reversed (sm-getrules TESTTHREE-EQ) 'Q1) '(Q0))
+
+; ;Proof By induction
+;
+; Key: U = unproductive (silly)
+; ; Say A and B are dfas
+; ; Prove: (grammar-testequiv (remove-unproductive (dfa B))) == (grammar A)
+; ;                            Where (dfa B) = {dfa A, (N)U} && (dfa A) has no unproductive rules
+; ;
+; ; Base Case: N=0, therefore the dfa B has no unproductive rules and is the same as dfa A
+; ; Because dfa A and B are the same, their grammars will be the same and neither will have unproductive rules
+; ;
+; ; Assume: For some K where K = N, (grammar-testequiv (remove-unproductive (dfa B))) == (grammar A)
+; ;                            Where (dfa B) = {dfa A, (N)U} && (dfa A) has no unproductive rules
+; ;
+; ; Prove: (grammar-testequiv (remove-unproductive (dfa B))) == (grammar A)
+; ;                            Where (dfa B) = {dfa A, (K+1)U} && (dfa A) has no unproductive rules
+; ;
+; ; dfa B = {dfa A, (K+1)U} = {{dfa A, (K)U}, (1)U}
+; ; The grammar (remove-unproductive ({dfa A, (K)U})) can be replaced with the grammar for dfa A since it is assumed after proving the base case
+; ; {{dfa A, (K)U}, (1)U} = {{dfa A}, (1)U}
+; ; because remove-unproductive recursivley removes all of the unproductive rules and states, any number of unproductive rules will be removed
+
 
 (test)
