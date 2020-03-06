@@ -31,6 +31,56 @@
                     (Q7 b Q7))))
 
 
+;has-word?: listof-chars listof-chars-> boolean
+;Purpose: to determine if the given list of characters has the other list of characters within it
+(define (has-word? input expected)
+  (cond [(< (length input) (length expected)) #f]
+        [(equal? (first-n-elements input (length expected)) expected) #t]
+        [else (has-word? (cdr input) expected)]))
+
+(check-expect (has-word? '(a b b a b a) '(b b a)) #t)
+(check-expect (has-word? '(a b b a b a) '(b b b)) #f)
+(check-expect (has-word? '(a b a b) '()) #t)
+
+;first-n-elements: list num -> list
+;Purpose: to output a list of the first n elements of the given list
+(define (first-n-elements loe n)
+  ;INVENTORY
+  ;(car loe) returns the first of the loe
+  ;(cdr loe) returns the rest of the loe
+  (cond [(= n 0) '()]
+        [else (cons (car loe) (first-n-elements (cdr loe) (- n 1)))]))
+
+(check-expect (first-n-elements '(a b b a b) 3) '(a b b))
+(check-expect (first-n-elements '(a b b a b a) 0) '())
+
+
+
+;Q0 Invariant
+(define (Q0-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 0) '()))
+;Q1 Invariant
+(define (Q1-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 1) '(b)))
+;Q2 Invariant
+(define (Q2-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 2) '(b b)))
+;Q3 Invariant
+(define (Q3-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 3) '(a b b)))
+;Q4 Invariant
+(define (Q4-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 4) '(b a b b)))
+;Q5 Invariant
+(define (Q5-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 5) '(b b a b b)))
+;Q6 Invariant
+(define (Q6-INV consumed-input)
+  (equal? (first-n-elements (reverse consumed-input) 6) '(a b b a b b)))
+;Q7 Invariant
+(define (Q7-INV consumed-input)
+  (has-word? consumed-input '(b b a b b a b)))
+
 (check-expect (sm-apply bbabbab '()) 'reject)
 (check-expect (sm-apply bbabbab '(a)) 'reject)
 (check-expect (sm-apply bbabbab '(b b a b b a b)) 'accept)
