@@ -73,6 +73,6 @@
   ;(car rule) -> current state
   ;(cadr rule) -> next-input
   ;(caddr rule) -> next-state
-  (list (list (car rule) (cadr rule) EMP) (list (caddr rule) EMP)))
+  (list (list (car rule) (cadr rule) '()) (list (caddr rule) '())))
 
 (test)
