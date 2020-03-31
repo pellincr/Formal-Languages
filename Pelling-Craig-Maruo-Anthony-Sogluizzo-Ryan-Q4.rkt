@@ -75,4 +75,62 @@
   ;(caddr rule) -> next-state
   (list (list (car rule) (cadr rule) EMP) (list (caddr rule) EMP)))
 
+
+
+;;;;;;;;;;;;;;;TESTS;;;;;;;;;;;;;;;;;;;;
+(define TESTONE-NDFA
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 a Q-1)
+               (Q-1 b Q-2)
+               (Q-2 a Q-3)
+               (Q-3 ,EMP Q-0)
+               (Q-0 a Q-4)
+               (Q-4 b Q-5)
+               (Q-5 ,EMP Q-0))))
+
+(define TESTTWO-NDFA
+  (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4)
+             '(a b)
+             'Q-0
+             '(Q-0)
+             `((Q-0 b Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0))))
+
+
+
+
+
+(check-expect (sm-testequiv? TESTONE-NDFA (ndfa->ndpda TESTONE-NDFA))#true)
+(check-expect (sm-testequiv? TESTTWO-NDFA (ndfa->ndpda TESTTWO-NDFA))#true)
+             
+              
+
+
+
+(check-expect(sm-rule->ndpda-rule '(Q-5 ,EMP Q-0))'((Q-5 ,EMP e) (Q-0 e)))  ;;last rule of TESTONE-NDFA
+(check-expect(sm-rule->ndpda-rule  '(Q-0 b Q-3))'((Q-0 b e) (Q-3 e))) ;; fourth rule of TESTTWO-NDFA
+
+
+(check-expect (sm-rules->ndpda-rules  `((Q-0 a Q-1)
+               (Q-1 b Q-2)
+               (Q-2 a Q-3)
+               (Q-3 ,EMP Q-0)
+               (Q-0 a Q-4)
+               (Q-4 b Q-5)
+               (Q-5 ,EMP Q-0)))'(((Q-0 a e) (Q-1 e)) ((Q-1 b e) (Q-2 e)) ((Q-2 a e) (Q-3 e)) ((Q-3 e e) (Q-0 e)) ((Q-0 a e) (Q-4 e)) ((Q-4 b e) (Q-5 e)) ((Q-5 e e) (Q-0 e)))) ;;all translated rules for TESTONE-NDFA
+
+(check-expect (sm-rules->ndpda-rules `((Q-0 b Q-1)
+               (Q-1 b Q-2)
+               (Q-2 ,EMP Q-0)
+               (Q-0 b Q-3)
+               (Q-3 a Q-4)
+               (Q-4 ,EMP Q-0)))'(((Q-0 b e) (Q-1 e)) ((Q-1 b e) (Q-2 e)) ((Q-2 e e) (Q-0 e)) ((Q-0 b e) (Q-3 e)) ((Q-3 a e) (Q-4 e)) ((Q-4 e e) (Q-0 e))))  ;;all translated rules for TESTTWO-NDFA
+ 
 (test)
