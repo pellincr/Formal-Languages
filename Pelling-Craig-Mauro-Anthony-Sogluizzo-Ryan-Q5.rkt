@@ -6,75 +6,98 @@
 
 
 (define aa
-    (make-tm
-   '(S A Y N)
-   '(a b)
+  (make-tm
+   '(S A Y)
+   `(a b ,LM)
    `(((S a) (A ,RIGHT))
      ((S b) (S ,RIGHT))
-     ((S ,BLANK) (N ,BLANK))
+     ((S ,BLANK) (S ,RIGHT))
      ((A a) (Y a))
      ((A b) (S ,RIGHT))
-     ((A ,BLANK) (N ,BLANK)))
+     ((A ,BLANK) (S ,RIGHT)))
    'S
-   '(Y N)
+   '(Y)
    'Y))
 
-(check-expect (sm-apply aa `(,LM a b b a b a b a a)) 'accept)
-(check-expect (sm-apply aa `(,LM b b)) 'reject)
-(check-expect (sm-apply aa `(,LM a a b b b b)) 'accept)
-(check-expect (sm-apply aa `(,LM a b b a)) 'reject)
-(check-expect (sm-apply aa `(,LM a b b)) 'reject)
-(check-expect (sm-apply aa `(,LM a)) 'reject)
+(define test1-aa (sm-showtransitions aa `(,LM a b a a)))
+(define test2-aa (sm-showtransitions aa `(,LM a b b a b a b a a)))
+(define test3-aa (sm-showtransitions aa `(,LM a a b b b b)))
+(define test4-aa (sm-showtransitions aa `(,LM a ,BLANK a a)))
+(define test5-aa (sm-showtransitions aa `(,LM a b b a ,BLANK b b a a b)))
+(check-expect (last test1-aa) '(Y 4 (@ a b a a)))
+(check-expect (last test2-aa)'(Y 9 (@ a b b a b a b a a)))
+(check-expect (last test3-aa)'(Y 2 (@ a a b b b b)))
+(check-expect (last test4-aa)'(Y 4 (@ a _ a a)))
+(check-expect (last test5-aa)'(Y 9 (@ a b b a _ b b a a b)))
+
+
+(define (S-INV t i)
+  #t)
 
 (define (A-INV t i)
   (eq? (list-ref t (- i 1)) 'a))
-
-(define (N-INV t i)
- (not (contains-aa t)))
-
-(define (S-INV t i)
- #t)
 
 (define (Y-INV t i)
   (and (eq? (list-ref t i) 'a)
        (eq? (list-ref t (- i 1)) 'a)))
 
-(define (contains-aa t)
-  (cond [(or (empty? t) (empty? (cdr t))) #f]
-        [(and (eq? (car t) 'a) (eq? (cadr t) 'a)) #t]
-        [else (contains-aa (cdr t))]))
-
-(check-expect (contains-aa '(a b a b b a)) #f)
-(check-expect (contains-aa '(a b a a)) #t)
-(check-expect (contains-aa '(a b a)) #f)
-(check-expect (contains-aa '(a a)) #t)
-(check-expect (contains-aa '(a)) #f)
-(check-expect (contains-aa '()) #f)
-
 ; Exercise 4.18c
 
-
-(define L-R
+(define R
   (make-tm
-   '(L R)
-   '()
-   `(((L ,BLANK) (R ,BLANK)))
-   'L
-   '(R)
-   'R))
-
-(define partc
-  (make-tm
-   '(Q0 Q1 H0 H1)
+   '(S H)
    '(a b)
-   `(((Q0 a) (H0 ,LEFT))
-     ((Q0 b) (H0 ,LEFT))
-     ((Q0 ,BLANK) (Q1 ,LEFT))
-     ((Q1 a) (H1 ,RIGHT))
-     ((Q1 b) (H1 ,RIGHT))
-     ((Q1 ,BLANK) (H1, RIGHT)))
-   'Q0
-   '(H0 H1)
-   'H1))
+   `(((S ,LM) (S ,RIGHT))
+     ((S a) (H ,RIGHT))
+     ((S b) (H ,RIGHT))
+     ((S ,BLANK) (H ,RIGHT)))
+   'S
+   '(H)))
+
+(define L
+  (make-tm
+   '(S H)
+   '(a b)
+   `(((S ,LM) (S ,RIGHT))
+     ((S a) (H ,LEFT))
+     ((S b) (H ,LEFT))
+     ((S ,BLANK) (H ,LEFT)))
+   'S
+   '(H)))
+
+(define LBR
+  (make-tm
+   '(S H)
+   '(a b)
+   `(((S ,LM) (S ,RIGHT))
+     ((S a) (H ,LEFT))
+     ((S b) (H ,LEFT))
+     ((S ,BLANK) (H ,RIGHT)))
+   'S
+   '(H)))
+
+
+(define HALT (make-tm '(S)
+                      '(a b)
+                      '()
+                      'S
+                      '(S)))
+
+(define FBL (combine-tms
+             (list 0 L (cons BRANCH
+                              (list (list 'a (list GOTO 0))
+                                    (list 'b (list GOTO 0))
+                                    (list LM (list GOTO 0))
+                                    (list BLANK HALT))))
+
+             (list 'a 'b LM)))
+
+(define LR (combine-tms
+            (list FBL (cons BRANCH
+                            (list (list 'a (list GOTO HALT))
+                                  (list 'b (list GOTO HALT))
+                                  (list LM (list GOTO HALT))
+                                  (list BLANK R))))
+            (list 'a 'b LM)))
 
 (test)
