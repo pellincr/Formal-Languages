@@ -65,16 +65,6 @@
    'S
    '(H)))
 
-(define LBR
-  (make-tm
-   '(S H)
-   '(a b)
-   `(((S ,LM) (S ,RIGHT))
-     ((S a) (H ,LEFT))
-     ((S b) (H ,LEFT))
-     ((S ,BLANK) (H ,RIGHT)))
-   'S
-   '(H)))
 
 
 (define HALT (make-tm '(S)
